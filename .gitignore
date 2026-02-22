@@ -31,3 +31,4 @@ dist/
 backend/uploads/
 *.xlsx
 !data.xlsx
+service-account.json

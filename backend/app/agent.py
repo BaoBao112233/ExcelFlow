@@ -1,15 +1,21 @@
 import os
-from typing import List, Dict, Any
-from openai import OpenAI
+from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 import json
+
+from .ai_gateway import AIGateway, AIConfig
 
 load_dotenv()
 
 class ExcelAgent:
-    def __init__(self):
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        self.client = OpenAI(api_key=self.api_key)
+    def __init__(self, ai_config: Optional[AIConfig] = None):
+        """
+        Initialize Excel Agent với AI Gateway
+        
+        Args:
+            ai_config: Optional AIConfig object. Nếu None, sẽ load từ env variables
+        """
+        self.gateway = AIGateway(ai_config) if ai_config else AIGateway.create_from_env()
         self.tools = [
             {
                 "type": "function",
@@ -234,19 +240,23 @@ class ExcelAgent:
         excel_modified = False
 
         while True:
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
+            # Sử dụng AI Gateway thay vì hardcode OpenAI
+            response = self.gateway.chat_completion(
                 messages=all_messages,
                 tools=self.tools,
                 tool_choice="auto"
             )
-            msg = response.choices[0].message
+            
+            # Gateway trả về normalized response
+            msg_content = response.get("content")
+            tool_calls = response.get("tool_calls", [])
+            raw_message = response.get("raw_message")
 
-            if msg.tool_calls:
+            if tool_calls:
                 results = []
-                for tool_call in msg.tool_calls:
-                    fn_name = tool_call.function.name
-                    args = json.loads(tool_call.function.arguments)
+                for tool_call in tool_calls:
+                    fn_name = tool_call["function"]["name"]
+                    args = json.loads(tool_call["function"]["arguments"])
                     print(f"Function: {fn_name}, Args: {args}")
 
                     try:
@@ -265,7 +275,7 @@ class ExcelAgent:
                         result = f"❌ Error executing {fn_name}: {str(e)}"
 
                     results.append({
-                        "tool_call_id": tool_call.id,
+                        "tool_call_id": tool_call["id"],
                         "output": result
                     })
 
@@ -273,13 +283,54 @@ class ExcelAgent:
                 tool_messages = [{
                     "tool_call_id": r["tool_call_id"],
                     "role": "tool",
-                    "name": msg.tool_calls[i].function.name,
+                    "name": tool_calls[i]["function"]["name"],
                     "content": str(r["output"])
                 } for i, r in enumerate(results)]
 
-                all_messages.append(msg)  # tool call message
+                # Thêm raw message vào history (để maintain compatibility với provider)
+                all_messages.append(raw_message)
                 all_messages.extend(tool_messages)
 
             else:
                 # Assistant has responded with final message, no more tool calls
-                return msg.content, excel_modified
+                return msg_content, excel_modified
+    
+    def get_provider_info(self) -> Dict[str, Any]:
+        """
+        Lấy thông tin về AI provider hiện tại
+        
+        Returns:
+            Dict chứa provider name, model name, và available providers
+        """
+        return self.gateway.get_provider_info()
+    
+    def switch_provider(self, provider: str, model: Optional[str] = None):
+        """
+        Switch sang AI provider khác
+        
+        Args:
+            provider: Provider name ("openai", "anthropic", "google", "groq", "vertex")
+            model: Optional model name
+        """
+        self.gateway.switch_provider(provider, model)
+    
+    def set_model(self, model: str):
+        """
+        Chỉ thay đổi model mà không đổi provider
+        
+        Args:
+            model: Model name
+        """
+        self.gateway.set_model(model)
+    
+    def get_available_models(self, provider: Optional[str] = None):
+        """
+        Lấy danh sách models available
+        
+        Args:
+            provider: Provider name (nếu None, dùng current provider)
+            
+        Returns:
+            List of available models
+        """
+        return self.gateway.get_available_models(provider)

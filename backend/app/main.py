@@ -6,6 +6,7 @@ from typing import Dict
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import uvicorn
 from dotenv import load_dotenv
 
@@ -57,9 +58,98 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# Pydantic models cho API requests
+class ProviderSwitchRequest(BaseModel):
+    provider: str  # "openai", "anthropic", "google", "groq", "vertex"
+    model: str = None  # Optional model name
+
+class ModelChangeRequest(BaseModel):
+    model: str  # Model name to switch to
+
 @app.get("/")
 async def root():
     return {"message": "Excel Agent API is running"}
+
+@app.get("/ai/info")
+async def get_ai_info():
+    """Lấy thông tin về AI provider hiện tại"""
+    try:
+        info = excel_agent.get_provider_info()
+        return JSONResponse(content=info)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
+
+@app.post("/ai/switch")
+async def switch_ai_provider(request: ProviderSwitchRequest):
+    """
+    Switch sang AI provider khác
+    
+    Body:
+        {
+            "provider": "openai" | "anthropic" | "google" | "groq" | "vertex",
+            "model": "optional-model-name"
+        }
+    """
+    try:
+        excel_agent.switch_provider(request.provider, request.model)
+        new_info = excel_agent.get_provider_info()
+        return JSONResponse(content={
+            "message": f"Switched to {request.provider}",
+            "info": new_info
+        })
+    except Exception as e:
+        return JSONResponse(
+            status_code=400,
+            content={"error": str(e)}
+        )
+
+@app.post("/ai/model")
+async def change_ai_model(request: ModelChangeRequest):
+    """
+    Chỉ thay đổi model mà không đổi provider
+    
+    Body:
+        {
+            "model": "model-name"
+        }
+    """
+    try:
+        excel_agent.set_model(request.model)
+        new_info = excel_agent.get_provider_info()
+        return JSONResponse(content={
+            "message": f"Changed model to {request.model}",
+            "info": new_info
+        })
+    except Exception as e:
+        return JSONResponse(
+            status_code=400,
+            content={"error": str(e)}
+        )
+
+@app.get("/ai/models")
+async def get_available_models(provider: str = None):
+    """
+    Lấy danh sách models available cho provider
+    
+    Query params:
+        provider: optional provider name (nếu không có, dùng current provider)
+    """
+    try:
+        models = excel_agent.get_available_models(provider)
+        current_info = excel_agent.get_provider_info()
+        return JSONResponse(content={
+            "provider": provider or current_info["provider"],
+            "models": models,
+            "current_model": current_info["model"]
+        })
+    except Exception as e:
+        return JSONResponse(
+            status_code=400,
+            content={"error": str(e)}
+        )
 
 @app.post("/upload")
 async def upload_excel(file: UploadFile = File(...)):

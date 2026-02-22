@@ -36,6 +36,9 @@ An interactive web application for managing and analyzing Excel sheets using Ope
 * **OpenAI GPT-4o Integration:**
   Advanced reasoning and understanding through OpenAI's GPT models and function calling.
 
+* **🆕 Multi-Provider AI Gateway:**
+  Flexible AI provider system - easily switch between **OpenAI, Anthropic Claude, Google Gemini, Groq, and Vertex AI** without changing code. Choose based on speed, cost, or quality needs. [See AI Gateway docs](./AI_GATEWAY.md)
+
 * **Real-time Updates:**
   See changes to your Excel file in real-time as the AI makes modifications.
 
@@ -84,8 +87,27 @@ The application is split into two main components:
 3. **Create and fill your `.env` file in the backend directory:**
 
    ```ini
+   # Choose your AI provider (openai, anthropic, google, groq, vertex)
+   AI_PROVIDER=openai
+   
+   # API Keys - only need the one you're using
    OPENAI_API_KEY=your_openai_key
+   # ANTHROPIC_API_KEY=your_anthropic_key  # Uncomment nếu dùng Claude
+   # GOOGLE_API_KEY=your_google_key  # Uncomment nếu dùng Gemini
+   # GROQ_API_KEY=your_groq_key  # Uncomment nếu dùng Groq (siêu nhanh!)
+   # VERTEX_PROJECT_ID=your_gcp_project  # Uncomment nếu dùng Vertex AI
+   
+   # Optional: Customize model and parameters
+   # AI_MODEL=gpt-4o
+   # AI_TEMPERATURE=0.7
    ```
+   
+   **💡 Muốn dùng provider khác?** Xem [AI Gateway Documentation](./AI_GATEWAY.md) để biết cách:
+   - Switch giữa **5 AI providers**: OpenAI, Anthropic, Google, Groq, Vertex
+   - [Groq Setup](./docs/GROQ_SETUP.md) - Ultra-fast inference (FREE!)
+   - [Vertex AI Setup](./docs/VERTEX_SETUP.md) - Enterprise Google AI
+   - Cài đặt dependencies cho từng provider
+   - Switch provider runtime qua API
 
 4. **Run the backend server:**
 

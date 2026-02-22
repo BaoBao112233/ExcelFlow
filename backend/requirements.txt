@@ -6,3 +6,10 @@ openpyxl>=3.1.5,<4.0.0
 python-dotenv>=1.1.1,<2.0.0
 openai>=1.3.0,<2.0.0
 websockets>=12.0,<13.0
+
+# Optional AI Providers (cài theo nhu cầu)
+# Uncomment dòng nào bạn cần:
+# anthropic>=0.39.0  # Cho Claude models
+# google-generativeai>=0.8.0  # Cho Gemini models (free tier)
+# google-cloud-aiplatform>=1.60.0  # Cho Vertex AI (enterprise Gemini)
+# groq (dùng openai package, không cần install riêng)
