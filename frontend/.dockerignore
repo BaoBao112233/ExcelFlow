@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Build output (will be rebuilt in container)
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Testing
+coverage/
+.nyc_output/
+
+# Documentation
+*.md
+!README.md
+
+# Cache
+.cache/
+.parcel-cache/
+.vite/
+
+# ESLint
+.eslintcache

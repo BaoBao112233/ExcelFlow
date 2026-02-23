@@ -1,0 +1,8 @@
+# Add to .gitignore to protect sensitive files
+.env
+service-account.json
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!vite.config.js

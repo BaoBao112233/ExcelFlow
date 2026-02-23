@@ -70,6 +70,23 @@ class ModelChangeRequest(BaseModel):
 async def root():
     return {"message": "Excel Agent API is running"}
 
+@app.get("/health")
+async def health():
+    """Health check endpoint for Docker"""
+    try:
+        ai_provider = excel_agent.gateway.get_current_provider() if excel_agent.gateway else "not_initialized"
+        ai_model = excel_agent.gateway.get_current_model() if excel_agent.gateway else "not_initialized"
+    except Exception:
+        ai_provider = "error"
+        ai_model = "error"
+    
+    return {
+        "status": "healthy",
+        "service": "ExcelFlow Backend",
+        "ai_provider": ai_provider,
+        "ai_model": ai_model
+    }
+
 @app.get("/ai/info")
 async def get_ai_info():
     """Lấy thông tin về AI provider hiện tại"""

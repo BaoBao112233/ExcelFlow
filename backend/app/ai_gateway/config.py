@@ -42,6 +42,7 @@ class AIConfig:
             "claude-3-haiku-20240307",
         ],
         "google": [
+            "gemini-2.0-flash-exp",  # Newest experimental model
             "gemini-1.5-pro",
             "gemini-1.5-flash",
             "gemini-1.0-pro",
@@ -54,6 +55,7 @@ class AIConfig:
             "gemma2-9b-it",
         ],
         "vertex": [
+            "gemini-2.0-flash-exp",  # Newest experimental model
             "gemini-1.5-pro",
             "gemini-1.5-flash",
             "gemini-1.0-pro",
